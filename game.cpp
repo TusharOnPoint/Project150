@@ -146,6 +146,25 @@ bool checkCollision() {
         cout << "Game Over! Collision with screen boundaries." << endl;
         return true;
     }
+
+    // Check collision with obstracle
+    if ((snake.body.front().first >= 60 && snake.body.front().first < 60+3*GRID_SIZE &&
+        snake.body.front().second >= 60 && snake.body.front().second < 60+8*GRID_SIZE) ||
+        (snake.body.front().first >= 60 && snake.body.front().first < 60+8*GRID_SIZE &&
+        snake.body.front().second >= 60 && snake.body.front().second < 60+3*GRID_SIZE) ||
+        (snake.body.front().first >= (SCREEN_WIDTH-60-(3*GRID_SIZE)) && snake.body.front().first < (SCREEN_WIDTH-60-(3*GRID_SIZE))+3*GRID_SIZE &&
+        snake.body.front().second >= (SCREEN_HEIGHT-60-(8*GRID_SIZE)) && snake.body.front().second < (SCREEN_HEIGHT-60-(8*GRID_SIZE))+8*GRID_SIZE) ||
+        (snake.body.front().first >= (SCREEN_WIDTH-60-(8*GRID_SIZE)) && snake.body.front().first < (SCREEN_WIDTH-60) &&
+        snake.body.front().second >= (SCREEN_HEIGHT-60-3*GRID_SIZE) && snake.body.front().second < (SCREEN_HEIGHT-60)) ||
+        (snake.body.front().first >= ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE) && snake.body.front().first < (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)+3*GRID_SIZE) &&
+        snake.body.front().second >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && snake.body.front().second < ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE+6*GRID_SIZE)) ||
+        (snake.body.front().first >= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE) && snake.body.front().first < ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE+11*GRID_SIZE) &&
+        snake.body.front().second >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && snake.body.front().second < (((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE)+3*GRID_SIZE))
+        {
+        cout << "Game Over! Collision with screen obs." << endl;
+        return true;
+    }
+    
     // Check collision with itself
     for (size_t i = 1; i < snake.body.size(); ++i) {
         if (snake.body.front().first == snake.body[i].first && snake.body.front().second == snake.body[i].second) {
@@ -163,7 +182,8 @@ int main(int argc, char* argv[])
 
     while (!quit) {
         processInput ();
-        update();
+        if(!pause)
+            update();
         if(checkCollision())
             break;
         render();
