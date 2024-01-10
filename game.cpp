@@ -5,8 +5,8 @@
 #undef main
 
 using namespace std;
-const int SCREEN_WIDTH = 640;
-const int SCREEN_HEIGHT = 480;
+const int SCREEN_WIDTH = 1020;
+const int SCREEN_HEIGHT = 640;
 const int GRID_SIZE = 20;
 const int INITIAL_LENGTH = 5;
 
@@ -26,29 +26,43 @@ Snake snake;
 Food food;
 
 bool quit = false;
-bool pause = false;
+bool pause = true;
+
+void generateFood() {
+    food.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
+    food.y = rand() % (SCREEN_HEIGHT / GRID_SIZE) * GRID_SIZE;
+    if ((food.x >= 60 && food.x < 60+3*GRID_SIZE &&
+        food.y >= 60 && food.y < 60+8*GRID_SIZE) ||
+        (food.x >= 60 && food.x < 60+8*GRID_SIZE &&
+        food.y >= 60 && food.y < 60+3*GRID_SIZE) ||
+        (food.x >= (SCREEN_WIDTH-60-(3*GRID_SIZE)) && food.x < (SCREEN_WIDTH-60-(3*GRID_SIZE))+3*GRID_SIZE &&
+        food.y >= (SCREEN_HEIGHT-60-(8*GRID_SIZE)) && food.y < (SCREEN_HEIGHT-60-(8*GRID_SIZE))+8*GRID_SIZE) ||
+        (food.x >= (SCREEN_WIDTH-60-(8*GRID_SIZE)) && food.x < (SCREEN_WIDTH-60) &&
+        food.y >= (SCREEN_HEIGHT-60-(3*GRID_SIZE)) && food.y < (SCREEN_HEIGHT-60)) ||
+        (food.x >= ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE) && food.x < (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)+3*GRID_SIZE) &&
+        food.y >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && food.y < ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE+6*GRID_SIZE)) ||
+        (food.x >= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE) && food.x < ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE+11*GRID_SIZE) &&
+        food.y >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && food.y < (((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE)+3*GRID_SIZE)) 
+        {
+            generateFood();
+        }
+}
 
 void initialize() {
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    snake.body.push_back({SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2});
+    snake.body.push_back({0, 0});
     snake.direction = 'R';
 
-    food.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
-    food.y = rand() % (SCREEN_HEIGHT / GRID_SIZE) * GRID_SIZE;
+    generateFood();
 }
 
 void close() {
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
-}
-
-void generateFood() {
-    food.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
-    food.y = rand() % (SCREEN_HEIGHT / GRID_SIZE) * GRID_SIZE;
 }
 
 void processInput (){
@@ -161,10 +175,10 @@ bool checkCollision() {
         (snake.body.front().first >= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE) && snake.body.front().first < ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE+11*GRID_SIZE) &&
         snake.body.front().second >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && snake.body.front().second < (((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE)+3*GRID_SIZE))
         {
-        cout << "Game Over! Collision with screen obs." << endl;
+        cout << "Game Over! Collision with screen obstracle." << endl;
         return true;
     }
-    
+
     // Check collision with itself
     for (size_t i = 1; i < snake.body.size(); ++i) {
         if (snake.body.front().first == snake.body[i].first && snake.body.front().second == snake.body[i].second) {
