@@ -25,6 +25,9 @@ struct Food {
 Snake snake;
 Food food;
 
+bool quit = false;
+bool pause = false;
+
 void initialize() {
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
@@ -46,6 +49,33 @@ void close() {
 void generateFood() {
     food.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
     food.y = rand() % (SCREEN_HEIGHT / GRID_SIZE) * GRID_SIZE;
+}
+
+void processInput (){
+    SDL_Event e;
+    while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                quit = true;
+            } else if (e.type == SDL_KEYDOWN) {
+                switch (e.key.keysym.sym) {
+                    case SDLK_UP:
+                        if (snake.direction != 'D') snake.direction = 'U';
+                        break;
+                    case SDLK_DOWN:
+                        if (snake.direction != 'U') snake.direction = 'D';
+                        break;
+                    case SDLK_LEFT:
+                        if (snake.direction != 'R') snake.direction = 'L';
+                        break;
+                    case SDLK_RIGHT:
+                        if (snake.direction != 'L') snake.direction = 'R';
+                        break;
+                    case SDLK_SPACE:
+                        pause = !pause;
+                        break;
+                }
+            }
+        }
 }
 
 void update() {
@@ -94,36 +124,33 @@ void render() {
     SDL_RenderPresent(renderer);
 }
 
+bool checkCollision() {
+    // Check collision with screen boundaries
+    if (snake.body.front().first < 0 || snake.body.front().first >= SCREEN_WIDTH ||
+        snake.body.front().second < 0 || snake.body.front().second >= SCREEN_HEIGHT) {
+        cout << "Game Over! Collision with screen boundaries." << endl;
+        return true;
+    }
+    // Check collision with itself
+    for (size_t i = 1; i < snake.body.size(); ++i) {
+        if (snake.body.front().first == snake.body[i].first && snake.body.front().second == snake.body[i].second) {
+            cout << "Game Over! Collision with itself." << endl;
+            return true;
+        }
+    }
+
+    return false;
+}
+
 int main(int argc, char* argv[])
 {
- initialize();
-
-    SDL_Event e;
-    bool quit = false;
+    initialize();
 
     while (!quit) {
-        while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = true;
-            } else if (e.type == SDL_KEYDOWN) {
-                switch (e.key.keysym.sym) {
-                    case SDLK_UP:
-                        if (snake.direction != 'D') snake.direction = 'U';
-                        break;
-                    case SDLK_DOWN:
-                        if (snake.direction != 'U') snake.direction = 'D';
-                        break;
-                    case SDLK_LEFT:
-                        if (snake.direction != 'R') snake.direction = 'L';
-                        break;
-                    case SDLK_RIGHT:
-                        if (snake.direction != 'L') snake.direction = 'R';
-                        break;
-                }
-            }
-        }
-
+        processInput ();
         update();
+        if(checkCollision())
+            break;
         render();
 
         SDL_Delay(100);
