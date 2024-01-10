@@ -109,15 +109,30 @@ void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
 
+    SDL_SetRenderDrawColor(renderer, 0, 202, 74, 255);
+    SDL_Rect obs = {60, 60, 3*GRID_SIZE, 8*GRID_SIZE};
+    SDL_RenderFillRect(renderer, &obs);
+    SDL_Rect obs1 = {60, 60, 8*GRID_SIZE, 3*GRID_SIZE};
+    SDL_RenderFillRect(renderer, &obs1);
+    SDL_Rect obs2 = {SCREEN_WIDTH-60-(3*GRID_SIZE), SCREEN_HEIGHT-60-(8*GRID_SIZE), 3*GRID_SIZE, 8*GRID_SIZE};
+    SDL_RenderFillRect(renderer, &obs2);
+    SDL_Rect obs3 = {SCREEN_WIDTH-60, SCREEN_HEIGHT-60-3*GRID_SIZE, -8*GRID_SIZE, 3*GRID_SIZE};
+    SDL_RenderFillRect(renderer, &obs3);
+    SDL_Rect obs4 = {(SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE, ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE), 3*GRID_SIZE, 12*GRID_SIZE};
+    SDL_RenderFillRect(renderer, &obs4);
+    SDL_Rect obs5 = {((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE, ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE), 11*GRID_SIZE, 3*GRID_SIZE};
+    SDL_RenderFillRect(renderer, &obs5);
+    
+    
     // Render Snake
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 242, 243, 245, 0);
     for (const auto& segment : snake.body) {
         SDL_Rect rect = {segment.first, segment.second, GRID_SIZE, GRID_SIZE};
         SDL_RenderFillRect(renderer, &rect);
     }
 
     // Render Food
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 255, 174, 66, 255);
     SDL_Rect foodRect = {food.x, food.y, GRID_SIZE, GRID_SIZE};
     SDL_RenderFillRect(renderer, &foodRect);
 
