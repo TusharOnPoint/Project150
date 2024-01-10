@@ -101,16 +101,28 @@ void update() {
 
     switch (snake.direction) {
         case 'U':
-            newHead.second -= GRID_SIZE;
+            if (snake.body.front().second < 0)
+                newHead.second = SCREEN_HEIGHT;
+            else
+                newHead.second -= GRID_SIZE;
             break;
         case 'D':
-            newHead.second += GRID_SIZE;
+            if (snake.body.front().second >= SCREEN_HEIGHT)
+                newHead.second = 0;
+            else
+                newHead.second += GRID_SIZE;
             break;
         case 'L':
-            newHead.first -= GRID_SIZE;
+            if (snake.body.front().first < 0)
+                newHead.first = SCREEN_WIDTH;
+            else
+                newHead.first -= GRID_SIZE;
             break;
         case 'R':
-            newHead.first += GRID_SIZE;
+            if (snake.body.front().first >= SCREEN_WIDTH)
+                newHead.first = 0;
+            else
+                newHead.first += GRID_SIZE;
             break;
     }
 
@@ -160,11 +172,11 @@ void render() {
 
 bool checkCollision() {
     // Check collision with screen boundaries
-    if (snake.body.front().first < 0 || snake.body.front().first >= SCREEN_WIDTH ||
+    /*if (snake.body.front().first < 0 || snake.body.front().first >= SCREEN_WIDTH ||
         snake.body.front().second < 0 || snake.body.front().second >= SCREEN_HEIGHT) {
         cout << "Game Over! Collision with screen boundaries." << endl;
         return true;
-    }
+    }*/
 
     // Check collision with obstracle
     if ((snake.body.front().first >= 60 && snake.body.front().first < 60+3*GRID_SIZE &&
