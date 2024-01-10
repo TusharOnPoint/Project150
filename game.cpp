@@ -25,9 +25,10 @@ struct Food {
 Snake snake;
 Food food;
 
-bool quit = false;
-bool pause = true;
-int score = 0;
+bool quit ;
+bool pause ;
+int score;
+int buttonid;
 
 void generateFood() {
     food.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
@@ -50,6 +51,10 @@ void generateFood() {
 }
 
 void initialize() {
+
+    quit = false;
+    pause = true;
+    score = 0;
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -64,6 +69,7 @@ void initialize() {
 }
 
 void close() {
+    snake.body.clear();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -101,25 +107,25 @@ void update() {
 
     switch (snake.direction) {
         case 'U':
-            if (snake.body.front().second < 0)
-                newHead.second = SCREEN_HEIGHT;
-            else
+            if (snake.body.front().second > 0)
                 newHead.second -= GRID_SIZE;
+            else
+                newHead.second = SCREEN_HEIGHT;
             break;
         case 'D':
-            if (snake.body.front().second >= SCREEN_HEIGHT)
+            if (snake.body.front().second >= SCREEN_HEIGHT-GRID_SIZE)
                 newHead.second = 0;
             else
                 newHead.second += GRID_SIZE;
             break;
         case 'L':
-            if (snake.body.front().first < 0)
-                newHead.first = SCREEN_WIDTH;
-            else
+            if (snake.body.front().first > 0)
                 newHead.first -= GRID_SIZE;
+            else
+                newHead.first = SCREEN_WIDTH;
             break;
         case 'R':
-            if (snake.body.front().first >= SCREEN_WIDTH)
+            if (snake.body.front().first >= SCREEN_WIDTH-GRID_SIZE)
                 newHead.first = 0;
             else
                 newHead.first += GRID_SIZE;
@@ -156,8 +162,13 @@ void render() {
     
     
     // Render Snake
+    SDL_SetRenderDrawColor(renderer, 202, 205, 208, 0);
+    const auto& segment = *snake.body.begin();
+    SDL_Rect rect = {segment.first, segment.second, GRID_SIZE, GRID_SIZE};
+    SDL_RenderFillRect(renderer, &rect);
     SDL_SetRenderDrawColor(renderer, 242, 243, 245, 0);
-    for (const auto& segment : snake.body) {
+    for (auto it = std::next(snake.body.begin()); it != snake.body.end(); ++it) {
+        const auto& segment = *it;
         SDL_Rect rect = {segment.first, segment.second, GRID_SIZE, GRID_SIZE};
         SDL_RenderFillRect(renderer, &rect);
     }
@@ -212,8 +223,9 @@ void displayScore () {
     scoreMessage = scoreMessage + to_string(score) + ".";
 
     const SDL_MessageBoxButtonData buttons[] = {
-        { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
-    };
+    { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
+    { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Replay" },
+};
 
     const SDL_MessageBoxData messageboxdata = {
         SDL_MESSAGEBOX_INFORMATION,
@@ -225,14 +237,12 @@ void displayScore () {
         NULL
     };
 
-    int buttonid;
     SDL_ShowMessageBox(&messageboxdata, &buttonid);
 }
 
-int main(int argc, char* argv[])
-{
-    initialize();
+void runGame(){
 
+    initialize();
     while (!quit) {
         processInput ();
         if(!pause)
@@ -246,5 +256,12 @@ int main(int argc, char* argv[])
 
     displayScore();
     close();
+    if(buttonid == 1)
+        runGame();
+} 
+
+int main(int argc, char* argv[])
+{
+    runGame();
     return 0;
 }
