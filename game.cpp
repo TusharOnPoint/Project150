@@ -27,6 +27,7 @@ Food food;
 
 bool quit = false;
 bool pause = true;
+int score = 0;
 
 void generateFood() {
     food.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
@@ -54,6 +55,9 @@ void initialize() {
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     snake.body.push_back({0, 0});
+    snake.body.push_back({1, 0});
+    snake.body.push_back({2, 0});
+    snake.body.push_back({3, 0});
     snake.direction = 'R';
 
     generateFood();
@@ -113,6 +117,7 @@ void update() {
     snake.body.insert(snake.body.begin(), newHead);
 
     if (newHead.first == food.x && newHead.second == food.y) {
+        score++;
         generateFood();
     } else {
         snake.body.pop_back();
@@ -190,6 +195,28 @@ bool checkCollision() {
     return false;
 }
 
+void displayScore () {
+    string scoreMessage = "Your Score is: ";
+    scoreMessage = scoreMessage + to_string(score) + ".";
+
+    const SDL_MessageBoxButtonData buttons[] = {
+        { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
+    };
+
+    const SDL_MessageBoxData messageboxdata = {
+        SDL_MESSAGEBOX_INFORMATION,
+        NULL,
+        "   Game Over!!!",
+        scoreMessage.c_str(),
+        (sizeof(buttons)/sizeof(buttons[0])),
+        buttons,
+        NULL
+    };
+
+    int buttonid;
+    SDL_ShowMessageBox(&messageboxdata, &buttonid);
+}
+
 int main(int argc, char* argv[])
 {
     initialize();
@@ -205,6 +232,7 @@ int main(int argc, char* argv[])
         SDL_Delay(100);
     }
 
+    displayScore();
     close();
     return 0;
 }
