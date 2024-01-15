@@ -1,14 +1,15 @@
 #include <iostream>
 #include <vector>
 #include <string>
-#include "include/SDL.h"
+#include <SDl2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #undef main
 
 using namespace std;
 const int SCREEN_WIDTH = 1020;
 const int SCREEN_HEIGHT = 640;
 const int GRID_SIZE = 20;
-const int INITIAL_LENGTH = 5;
+//const int INITIAL_LENGTH = 5;
 
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
@@ -53,11 +54,12 @@ void generateFood() {
 void initialize() {
 
     quit = false;
-    pause = true;
+    pause = false;
     score = 0;
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+    TTF_Init();
 
     snake.body.push_back({0, 0});
     snake.body.push_back({1, 0});
@@ -70,6 +72,7 @@ void initialize() {
 
 void close() {
     snake.body.clear();
+    TTF_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
     SDL_Quit();
@@ -83,16 +86,32 @@ void processInput (){
             } else if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                     case SDLK_UP:
-                        if (snake.direction != 'D') snake.direction = 'U';
+                        if (snake.direction != 'D') 
+                        {
+                            snake.direction = 'U';
+                            if (pause) pause= !pause;
+                        }
                         break;
                     case SDLK_DOWN:
-                        if (snake.direction != 'U') snake.direction = 'D';
+                        if (snake.direction != 'U') 
+                        {
+                            snake.direction = 'D';
+                            if (pause) pause= !pause;
+                        }
                         break;
                     case SDLK_LEFT:
-                        if (snake.direction != 'R') snake.direction = 'L';
+                        if (snake.direction != 'R') 
+                        {
+                            snake.direction = 'L';
+                            if (pause) pause= !pause;
+                        }
                         break;
                     case SDLK_RIGHT:
-                        if (snake.direction != 'L') snake.direction = 'R';
+                        if (snake.direction != 'L') 
+                        {
+                            snake.direction = 'R';
+                            if (pause) pause= !pause;
+                        }
                         break;
                     case SDLK_SPACE:
                         pause = !pause;
@@ -110,7 +129,7 @@ void update() {
             if (snake.body.front().second > 0)
                 newHead.second -= GRID_SIZE;
             else
-                newHead.second = SCREEN_HEIGHT;
+                newHead.second = SCREEN_HEIGHT-GRID_SIZE;
             break;
         case 'D':
             if (snake.body.front().second >= SCREEN_HEIGHT-GRID_SIZE)
@@ -122,7 +141,7 @@ void update() {
             if (snake.body.front().first > 0)
                 newHead.first -= GRID_SIZE;
             else
-                newHead.first = SCREEN_WIDTH;
+                newHead.first = SCREEN_WIDTH-GRID_SIZE;
             break;
         case 'R':
             if (snake.body.front().first >= SCREEN_WIDTH-GRID_SIZE)
@@ -137,14 +156,39 @@ void update() {
     if (newHead.first == food.x && newHead.second == food.y) {
         score++;
         generateFood();
-    } else {
+    } 
+    else {
         snake.body.pop_back();
     }
 }
 
+void renderScore() {
+	SDL_Color Red = { 255, 0, 0 };
+
+	TTF_Font* font = TTF_OpenFont((char*)"Aller_Rg.ttf", 16);
+	if (font == NULL) {
+		cout << "Font loading error" << endl;
+		return;
+	}
+
+	SDL_Surface* Score = TTF_RenderText_Solid(font, (string("Score: ") + to_string(score)).c_str(), Red);
+	SDL_Texture* scoreMessage = SDL_CreateTextureFromSurface(renderer, Score);
+	SDL_Rect scoreRect;
+	scoreRect.w = 160;
+	scoreRect.h = 45;
+	scoreRect.x = ((SCREEN_WIDTH) / 2) - (scoreRect.w / 2);
+	scoreRect.y = 0;
+	SDL_RenderCopy(renderer, scoreMessage, NULL, &scoreRect);
+
+	TTF_CloseFont(font);
+}
+
+
 void render() {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderClear(renderer);
+
+    renderScore();
 
     SDL_SetRenderDrawColor(renderer, 0, 202, 74, 255);
     SDL_Rect obs = {60, 60, 3*GRID_SIZE, 8*GRID_SIZE};
@@ -162,9 +206,9 @@ void render() {
     
     
     // Render Snake
-    SDL_SetRenderDrawColor(renderer, 202, 205, 208, 0);
-    const auto& segment = *snake.body.begin();
-    SDL_Rect rect = {segment.first, segment.second, GRID_SIZE, GRID_SIZE};
+    SDL_SetRenderDrawColor(renderer, 160, 155, 158, 0);
+    const auto& head = *snake.body.begin();
+    SDL_Rect rect = {head.first, head.second, GRID_SIZE, GRID_SIZE};
     SDL_RenderFillRect(renderer, &rect);
     SDL_SetRenderDrawColor(renderer, 242, 243, 245, 0);
     for (auto it = std::next(snake.body.begin()); it != snake.body.end(); ++it) {
@@ -180,6 +224,8 @@ void render() {
 
     SDL_RenderPresent(renderer);
 }
+
+
 
 bool checkCollision() {
     // Check collision with screen boundaries
@@ -240,6 +286,30 @@ void displayScore () {
     SDL_ShowMessageBox(&messageboxdata, &buttonid);
 }
 
+void renderGameOver() {
+    //cout<<"Game is over.\n";
+	SDL_Color red = { 255, 0, 0 };
+
+	TTF_Font* font = TTF_OpenFont((char*)"Pacifico.ttf", 26);
+	if (font == NULL) {
+		cout << "Font loading error" << endl;
+		return;
+	}
+
+    string msg = "GAME OVER!!!";
+	SDL_Surface* GO = TTF_RenderText_Solid(font, msg.c_str(), red);
+	SDL_Texture* GOMessage = SDL_CreateTextureFromSurface(renderer, GO);
+	SDL_Rect GORect;
+	GORect.w = 480;
+	GORect.h = 180;
+	GORect.x = ((SCREEN_WIDTH) / 2) - (GORect.w / 2);
+	GORect.y = ((SCREEN_HEIGHT) / 2) - (GORect.h / 2);
+	SDL_RenderCopy(renderer, GOMessage, NULL, &GORect);
+    SDL_RenderPresent(renderer);
+
+	TTF_CloseFont(font);
+}
+
 void runGame(){
 
     initialize();
@@ -250,10 +320,11 @@ void runGame(){
         if(checkCollision())
             break;
         render();
-
-        SDL_Delay(100);
+        SDL_Delay(100-score);
     }
-
+    
+    renderGameOver();
+    SDL_Delay(1000);
     displayScore();
     close();
     if(buttonid == 1)
