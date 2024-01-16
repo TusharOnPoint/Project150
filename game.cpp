@@ -29,11 +29,16 @@ struct Food {
 
 Snake snake;
 Food food;
+Food sp;
+
+int ptime = 0;
 
 bool quit ;
 bool pause ;
+bool f=true;
 int score;
 int buttonid;
+int o=0;
 
 void generateFood() {
     food.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
@@ -55,6 +60,27 @@ void generateFood() {
         }
 }
 
+void generateSpFood() {
+    sp.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
+    sp.y = rand() % (SCREEN_HEIGHT / GRID_SIZE) * GRID_SIZE;
+    if ((sp.x >= 60 && sp.x < 60+3*GRID_SIZE &&
+        sp.y >= 60 && sp.y < 60+8*GRID_SIZE) ||
+        (sp.x >= 60 && sp.x < 60+8*GRID_SIZE &&
+        sp.y >= 60 && sp.y < 60+3*GRID_SIZE) ||
+        (sp.x >= (SCREEN_WIDTH-60-(3*GRID_SIZE)) && sp.x < (SCREEN_WIDTH-60-(3*GRID_SIZE))+3*GRID_SIZE &&
+        sp.y >= (SCREEN_HEIGHT-60-(8*GRID_SIZE)) && sp.y < (SCREEN_HEIGHT-60-(8*GRID_SIZE))+8*GRID_SIZE) ||
+        (sp.x >= (SCREEN_WIDTH-60-(8*GRID_SIZE)) && sp.x < (SCREEN_WIDTH-60) &&
+        sp.y >= (SCREEN_HEIGHT-60-(3*GRID_SIZE)) && sp.y < (SCREEN_HEIGHT-60)) ||
+        (sp.x >= ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE) && sp.x < (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)+3*GRID_SIZE) &&
+        sp.y >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && sp.y < ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE+6*GRID_SIZE)) ||
+        (sp.x >= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE) && sp.x < ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE+11*GRID_SIZE) &&
+        sp.y >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && sp.y < (((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE)+3*GRID_SIZE)) 
+        {
+            generateSpFood();
+        }
+        ptime = SDL_GetTicks();
+}
+
 void initialize() {
 
     quit = false;
@@ -62,6 +88,7 @@ void initialize() {
     score = 0;
     SDL_Init(SDL_INIT_VIDEO);
     window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    //SDL_SetWindowBordered(window, SDL_TRUE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     TTF_Init();
 
@@ -71,6 +98,8 @@ void initialize() {
     snake.body.push_back({3, 0});
     snake.direction = 'R';
 
+    sp.x=-100;
+    sp.y=-100;
     generateFood();
 }
 
@@ -86,7 +115,7 @@ void processInput (){
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
-                quit = true;
+                exit(0);
             } else if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                     case SDLK_UP:
@@ -128,6 +157,14 @@ void processInput (){
 void update() {
     pair<int, int> newHead = snake.body.front();
 
+    int ctime = SDL_GetTicks();
+    if ((ctime-ptime >= 6000))
+    {
+        f=false;
+        sp.x = -100;
+        sp.y = -100;
+    }
+
     switch (snake.direction) {
         case 'U':
             if (snake.body.front().second > 0)
@@ -156,11 +193,26 @@ void update() {
     }
 
     snake.body.insert(snake.body.begin(), newHead);
+    
+
+    if (score % 7 == 0 && score != o && !f) 
+    { 
+        o=score;
+        f=true;
+        generateSpFood();
+    }
 
     if (newHead.first == food.x && newHead.second == food.y) {
         score++;
         generateFood();
     } 
+    else if(newHead.first == sp.x && newHead.second == sp.y)
+    {
+        f=false;
+        score+=8;
+        sp.x= -100;
+        sp.y= -100;
+    }
     else {
         snake.body.pop_back();
     }
@@ -225,6 +277,10 @@ void render() {
     SDL_SetRenderDrawColor(renderer, 255, 174, 66, 255);
     SDL_Rect foodRect = {food.x, food.y, GRID_SIZE, GRID_SIZE};
     SDL_RenderFillRect(renderer, &foodRect);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+    SDL_Rect spRect = {sp.x, sp.y, GRID_SIZE, GRID_SIZE};
+    SDL_RenderFillRect(renderer, &spRect);
 
     SDL_RenderPresent(renderer);
 }
@@ -298,7 +354,7 @@ void renderGameOver() {
 
 	SDL_Color C = { 255, 255, 255 };
 
-	TTF_Font* font = TTF_OpenFont((char*)"Pacifico.ttf", 26);
+	TTF_Font* font = TTF_OpenFont((char*)"Aller_Rg.ttf", 26);
 	if (font == NULL) {
 		cout << "Font loading error" << endl;
 		return;
@@ -314,7 +370,7 @@ void renderGameOver() {
 	GORect.y = ((SCREEN_HEIGHT) / 2) - (GORect.h / 2);
 	SDL_RenderCopy(renderer, GOMessage, NULL, &GORect);
     SDL_RenderPresent(renderer);
-    SDL_Delay(3000);
+    SDL_Delay(500);
 
 	TTF_CloseFont(font);
 }
@@ -329,7 +385,7 @@ void runGame(){
         if(checkCollision())
             break;
         render();
-        SDL_Delay(abs(100-score));
+        SDL_Delay((100-(0.5*score)));
     }
     
     renderGameOver();
