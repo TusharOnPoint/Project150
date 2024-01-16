@@ -1,8 +1,12 @@
+//This is a simple snake game
+//Author: Tushar Das
+
+
 #include <iostream>
 #include <vector>
 #include <string>
-#include <SDl2/SDL.h>
-#include <SDL2/SDL_ttf.h>
+#include "include/SDL.h"
+#include "include/SDL_ttf.h"
 #undef main
 
 using namespace std;
@@ -229,7 +233,7 @@ void render() {
 
 bool checkCollision() {
     // Check collision with screen boundaries
-    /*if (snake.body.front().first < 0 || snake.body.front().first >= SCREEN_WIDTH ||
+    /*if (snake.body.front().first < 0 || snake.body.front().first >= SCREEN_WIDTH ||//Tushar
         snake.body.front().second < 0 || snake.body.front().second >= SCREEN_HEIGHT) {
         cout << "Game Over! Collision with screen boundaries." << endl;
         return true;
@@ -246,7 +250,7 @@ bool checkCollision() {
         snake.body.front().second >= (SCREEN_HEIGHT-60-3*GRID_SIZE) && snake.body.front().second < (SCREEN_HEIGHT-60)) ||
         (snake.body.front().first >= ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE) && snake.body.front().first < (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)+3*GRID_SIZE) &&
         snake.body.front().second >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && snake.body.front().second < ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE+6*GRID_SIZE)) ||
-        (snake.body.front().first >= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE) && snake.body.front().first < ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE+11*GRID_SIZE) &&
+        (snake.body.front().first >= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE) && snake.body.front().first < ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE+11*GRID_SIZE) && //Tushar
         snake.body.front().second >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && snake.body.front().second < (((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE)+3*GRID_SIZE))
         {
         cout << "Game Over! Collision with screen obstracle." << endl;
@@ -288,7 +292,11 @@ void displayScore () {
 
 void renderGameOver() {
     //cout<<"Game is over.\n";
-	SDL_Color red = { 255, 0, 0 };
+
+    SDL_SetRenderDrawColor(renderer, 90, 100, 70, 255);
+    SDL_RenderClear(renderer);
+
+	SDL_Color C = { 255, 255, 255 };
 
 	TTF_Font* font = TTF_OpenFont((char*)"Pacifico.ttf", 26);
 	if (font == NULL) {
@@ -297,7 +305,7 @@ void renderGameOver() {
 	}
 
     string msg = "GAME OVER!!!";
-	SDL_Surface* GO = TTF_RenderText_Solid(font, msg.c_str(), red);
+	SDL_Surface* GO = TTF_RenderText_Solid(font, msg.c_str(), C);
 	SDL_Texture* GOMessage = SDL_CreateTextureFromSurface(renderer, GO);
 	SDL_Rect GORect;
 	GORect.w = 480;
@@ -306,6 +314,7 @@ void renderGameOver() {
 	GORect.y = ((SCREEN_HEIGHT) / 2) - (GORect.h / 2);
 	SDL_RenderCopy(renderer, GOMessage, NULL, &GORect);
     SDL_RenderPresent(renderer);
+    SDL_Delay(3000);
 
 	TTF_CloseFont(font);
 }
@@ -320,7 +329,7 @@ void runGame(){
         if(checkCollision())
             break;
         render();
-        SDL_Delay(100-score);
+        SDL_Delay(abs(100-score));
     }
     
     renderGameOver();
@@ -336,3 +345,7 @@ int main(int argc, char* argv[])
     runGame();
     return 0;
 }
+
+//Name: Tushar Das
+//Reg: 2021831003
+//Software Engineering, IICT, SUST
