@@ -1,22 +1,22 @@
 //This is a simple snake game
 //Author: Tushar Das
 
-
-#include <iostream>
-#include <vector>
-#include <string>
+#include <bits/stdc++.h>
 #include "include/SDL.h"
 #include "include/SDL_ttf.h"
+#include "include/SDL_mixer.h"
 #undef main
 
 using namespace std;
+
 const int SCREEN_WIDTH = 1020;
-const int SCREEN_HEIGHT = 640;
-const int GRID_SIZE = 20;
+const int SCREEN_HEIGHT = 615;
+const int GRID_SIZE = 15;
 //const int INITIAL_LENGTH = 5;
 
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
+Mix_Chunk* wavFile;
 
 struct Snake {
     vector<pair<int, int>> body;
@@ -37,8 +37,22 @@ bool quit ;
 bool pause ;
 bool f=true;
 int score;
+int highScore = 0;
 int buttonid;
 int o=0;
+int regfoodcount = 0;
+
+void drawCirc (int X, int Y, int radius)
+{
+    while (radius--) {
+            for (int angle = 0; angle < 360; angle++) {
+                int x = X + radius * cos(angle * M_PI / 180);
+                int y = Y + radius * sin(angle * M_PI / 180);
+                SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
+                SDL_RenderDrawPoint(renderer, x, y);
+            }
+        }
+}
 
 void generateFood() {
     food.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
@@ -79,6 +93,7 @@ void generateSpFood() {
             generateSpFood();
         }
         ptime = SDL_GetTicks();
+        regfoodcount = 0;
 }
 
 void initialize() {
@@ -86,7 +101,7 @@ void initialize() {
     quit = false;
     pause = false;
     score = 0;
-    SDL_Init(SDL_INIT_VIDEO);
+    regfoodcount = 0;
     window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     //SDL_SetWindowBordered(window, SDL_TRUE);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
@@ -101,10 +116,12 @@ void initialize() {
     sp.x=-100;
     sp.y=-100;
     generateFood();
+
+    
+    
 }
 
 void close() {
-    snake.body.clear();
     TTF_Quit();
     SDL_DestroyRenderer(renderer);
     SDL_DestroyWindow(window);
@@ -115,8 +132,9 @@ void processInput (){
     SDL_Event e;
     while (SDL_PollEvent(&e) != 0) {
             if (e.type == SDL_QUIT) {
-                exit(0);
-            } else if (e.type == SDL_KEYDOWN) {
+                exit(1);
+            } 
+            else if (e.type == SDL_KEYDOWN) {
                 switch (e.key.keysym.sym) {
                     case SDLK_UP:
                         if (snake.direction != 'D') 
@@ -155,7 +173,6 @@ void processInput (){
 }
 
 void update() {
-    pair<int, int> newHead = snake.body.front();
 
     int ctime = SDL_GetTicks();
     if ((ctime-ptime >= 6000))
@@ -164,7 +181,7 @@ void update() {
         sp.x = -100;
         sp.y = -100;
     }
-
+    pair<int, int> newHead = snake.body.front();
     switch (snake.direction) {
         case 'U':
             if (snake.body.front().second > 0)
@@ -195,23 +212,82 @@ void update() {
     snake.body.insert(snake.body.begin(), newHead);
     
 
-    if (score % 7 == 0 && score != o && !f) 
+    if (regfoodcount == 7) 
     { 
-        o=score;
-        f=true;
         generateSpFood();
     }
 
     if (newHead.first == food.x && newHead.second == food.y) {
         score++;
+        regfoodcount++;
+        /*switch (snake.direction) {
+        case 'U':
+            if (snake.body.front().second > 0)
+                newHead.second -= GRID_SIZE;
+            else
+                newHead.second = SCREEN_HEIGHT-GRID_SIZE;
+            break;
+        case 'D':
+            if (snake.body.front().second >= SCREEN_HEIGHT-GRID_SIZE)
+                newHead.second = 0;
+            else
+                newHead.second += GRID_SIZE;
+            break;
+        case 'L':
+            if (snake.body.front().first > 0)
+                newHead.first -= GRID_SIZE;
+            else
+                newHead.first = SCREEN_WIDTH-GRID_SIZE;
+            break;
+        case 'R':
+            if (snake.body.front().first >= SCREEN_WIDTH-GRID_SIZE)
+                newHead.first = 0;
+            else
+                newHead.first += GRID_SIZE;
+            break;
+    }
+    snake.body.insert(snake.body.begin(), newHead);
+        snake.body.pop_back();*/
+        Mix_PlayChannel(-1, wavFile, 0);
         generateFood();
     } 
-    else if(newHead.first == sp.x && newHead.second == sp.y)
+    else if((newHead.first >= sp.x - GRID_SIZE && newHead.first < sp.x + GRID_SIZE) && 
+    (newHead.second >= sp.y - GRID_SIZE && newHead.second < sp.y + GRID_SIZE))
     {
-        f=false;
-        score+=8;
+        score+=10;
         sp.x= -100;
         sp.y= -100;
+        /*switch (snake.direction) {
+        case 'U':
+            if (snake.body.front().second > 0)
+                newHead.second -= GRID_SIZE;
+            else
+                newHead.second = SCREEN_HEIGHT-GRID_SIZE;
+            break;
+        case 'D':
+            if (snake.body.front().second >= SCREEN_HEIGHT-GRID_SIZE)
+                newHead.second = 0;
+            else
+                newHead.second += GRID_SIZE;
+            break;
+        case 'L':
+            if (snake.body.front().first > 0)
+                newHead.first -= GRID_SIZE;
+            else
+                newHead.first = SCREEN_WIDTH-GRID_SIZE;
+            break;
+        case 'R':
+            if (snake.body.front().first >= SCREEN_WIDTH-GRID_SIZE)
+                newHead.first = 0;
+            else
+                newHead.first += GRID_SIZE;
+            break;
+    }
+    
+    snake.body.insert(snake.body.begin(), newHead);
+    snake.body.pop_back();*/
+
+    Mix_PlayChannel(-1, wavFile, 0);
     }
     else {
         snake.body.pop_back();
@@ -279,8 +355,11 @@ void render() {
     SDL_RenderFillRect(renderer, &foodRect);
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 255, 255);
-    SDL_Rect spRect = {sp.x, sp.y, GRID_SIZE, GRID_SIZE};
-    SDL_RenderFillRect(renderer, &spRect);
+    drawCirc (sp.x, sp.y, GRID_SIZE);
+    //SDL_Rect spRect = {sp.x, sp.y, GRID_SIZE, GRID_SIZE};
+    //SDL_RenderFillRect(renderer, &spRect);
+
+    //drawCirc (sp.x, sp.y, 7);
 
     SDL_RenderPresent(renderer);
 }
@@ -327,6 +406,7 @@ bool checkCollision() {
 void displayScore () {
     string scoreMessage = "Your Score is: ";
     scoreMessage = scoreMessage + to_string(score) + ".";
+    string msg = scoreMessage + "\nHighest score is: " + to_string(highScore) + ".";
 
     const SDL_MessageBoxButtonData buttons[] = {
     { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
@@ -337,7 +417,7 @@ void displayScore () {
         SDL_MESSAGEBOX_INFORMATION,
         NULL,
         "   Game Over!!!",
-        scoreMessage.c_str(),
+        msg.c_str(),
         (sizeof(buttons)/sizeof(buttons[0])),
         buttons,
         NULL
@@ -380,24 +460,53 @@ void runGame(){
     initialize();
     while (!quit) {
         processInput ();
-        if(!pause)
+        if (!pause){
+            Mix_ResumeMusic();
             update();
+        } else
+            Mix_PauseMusic();
         if(checkCollision())
             break;
         render();
         SDL_Delay((100-(0.5*score)));
     }
-    
+    ifstream inputFile("high_score.txt");
+
+    if (!inputFile.is_open()) {
+        cout << "Error opening the file!" << endl;
+    }
+
+    inputFile >> highScore;
+    inputFile.close();
+
+    if(highScore < score)
+    {
+        highScore = score;
+        ofstream outputFile("high_score.txt");
+
+        if (!outputFile.is_open()) {
+            cout << "Error opening the file!" << endl;
+        }
+        outputFile << highScore << endl;
+        outputFile.close();
+    }
+
     renderGameOver();
     SDL_Delay(1000);
     displayScore();
-    close();
+    snake.body.clear();
     if(buttonid == 1)
         runGame();
+    close();
 } 
 
 int main(int argc, char* argv[])
 {
+    SDL_Init(SDL_INIT_EVERYTHING);
+    Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
+    wavFile = Mix_LoadWAV("gunshot.wav");
+    Mix_Music* BGM = Mix_LoadMUS("bm.mp3");
+    Mix_PlayMusic(BGM, -1);
     runGame();
     return 0;
 }
