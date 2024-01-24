@@ -9,14 +9,14 @@
 
 using namespace std;
 
-const int SCREEN_WIDTH = 1020;
+const int SCREEN_WIDTH = 945;
 const int SCREEN_HEIGHT = 615;
 const int GRID_SIZE = 15;
-//const int INITIAL_LENGTH = 5;
 
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
 Mix_Chunk* wavFile;
+Mix_Chunk* gameOver;
 
 struct Snake {
     vector<pair<int, int>> body;
@@ -32,6 +32,7 @@ Food food;
 Food sp;
 
 int ptime = 0;
+int px=SCREEN_WIDTH/2, py=SCREEN_HEIGHT/2;
 
 bool quit ;
 bool pause ;
@@ -77,18 +78,18 @@ void generateFood() {
 void generateSpFood() {
     sp.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
     sp.y = rand() % (SCREEN_HEIGHT / GRID_SIZE) * GRID_SIZE;
-    if ((sp.x >= 60 && sp.x < 60+3*GRID_SIZE &&
-        sp.y >= 60 && sp.y < 60+8*GRID_SIZE) ||
-        (sp.x >= 60 && sp.x < 60+8*GRID_SIZE &&
-        sp.y >= 60 && sp.y < 60+3*GRID_SIZE) ||
-        (sp.x >= (SCREEN_WIDTH-60-(3*GRID_SIZE)) && sp.x < (SCREEN_WIDTH-60-(3*GRID_SIZE))+3*GRID_SIZE &&
-        sp.y >= (SCREEN_HEIGHT-60-(8*GRID_SIZE)) && sp.y < (SCREEN_HEIGHT-60-(8*GRID_SIZE))+8*GRID_SIZE) ||
-        (sp.x >= (SCREEN_WIDTH-60-(8*GRID_SIZE)) && sp.x < (SCREEN_WIDTH-60) &&
-        sp.y >= (SCREEN_HEIGHT-60-(3*GRID_SIZE)) && sp.y < (SCREEN_HEIGHT-60)) ||
-        (sp.x >= ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE) && sp.x < (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)+3*GRID_SIZE) &&
-        sp.y >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && sp.y < ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE+6*GRID_SIZE)) ||
-        (sp.x >= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE) && sp.x < ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE+11*GRID_SIZE) &&
-        sp.y >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && sp.y < (((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE)+3*GRID_SIZE)) 
+    if ((sp.x >= 60 && sp.x <= 60+3*GRID_SIZE &&
+        sp.y >= 60 && sp.y <= 60+8*GRID_SIZE) ||
+        (sp.x >= 60 && sp.x <= 60+8*GRID_SIZE &&
+        sp.y >= 60 && sp.y <= 60+3*GRID_SIZE) ||
+        (sp.x >= (SCREEN_WIDTH-60-(3*GRID_SIZE)) && sp.x <= (SCREEN_WIDTH-60-(3*GRID_SIZE))+3*GRID_SIZE &&
+        sp.y >= (SCREEN_HEIGHT-60-(8*GRID_SIZE)) && sp.y <= (SCREEN_HEIGHT-60-(8*GRID_SIZE))+8*GRID_SIZE) ||
+        (sp.x >= (SCREEN_WIDTH-60-(8*GRID_SIZE)) && sp.x <= (SCREEN_WIDTH-60) &&
+        sp.y >= (SCREEN_HEIGHT-60-(3*GRID_SIZE)) && sp.y <= (SCREEN_HEIGHT-60)) ||
+        (sp.x >= ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE) && sp.x <= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)+3*GRID_SIZE) &&
+        sp.y >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && sp.y <= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE+6*GRID_SIZE)) ||
+        (sp.x >= (((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE) && sp.x <= ((SCREEN_WIDTH/GRID_SIZE)/2*GRID_SIZE)-4*GRID_SIZE+11*GRID_SIZE) &&
+        sp.y >= ((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE) && sp.y <= (((SCREEN_HEIGHT/GRID_SIZE)/2*GRID_SIZE-6*GRID_SIZE)+3*GRID_SIZE)) 
         {
             generateSpFood();
         }
@@ -102,8 +103,7 @@ void initialize() {
     pause = false;
     score = 0;
     regfoodcount = 0;
-    window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
-    //SDL_SetWindowBordered(window, SDL_TRUE);
+    window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_BORDERLESS);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
     TTF_Init();
 
@@ -167,9 +167,59 @@ void processInput (){
                     case SDLK_SPACE:
                         pause = !pause;
                         break;
+                    case SDLK_ESCAPE:
+                        exit(0);
+                        break;
                 }
             }
         }
+
+    int x,y;
+    SDL_GetMouseState(&x, &y);
+    int dx = px-x, dy = py-y;
+    //cout << px << " " << py << endl;
+    //cout << x << " " << y << endl;
+    //cout << dx << " " << dy << endl;
+    //cout << endl;
+    if(abs(dx)>abs(dy))
+    {
+        if(dx>0) 
+        {
+            if (snake.direction != 'R') 
+                    {
+                        snake.direction = 'L';
+                        if (pause) pause= !pause;
+                    }
+        }
+        else if(dx<0){
+            if (snake.direction != 'L') 
+                        {
+                            snake.direction = 'R';
+                            if (pause) pause= !pause;
+                        }
+        }
+    }
+    else if(abs(dx)<abs(dy))
+    {
+        if(dy>0) 
+        {
+            if (snake.direction != 'D') 
+                    {
+                        snake.direction = 'U';
+                        if (pause) pause= !pause;
+                    }
+        }
+        else if(dy<0){
+            if (snake.direction != 'U') 
+                        {
+                            snake.direction = 'D';
+                            if (pause) pause= !pause;
+                        }
+        }
+    }
+
+    px=x;
+    py=y;
 }
 
 void update() {
@@ -297,7 +347,7 @@ void update() {
 void renderScore() {
 	SDL_Color Red = { 255, 0, 0 };
 
-	TTF_Font* font = TTF_OpenFont((char*)"Aller_Rg.ttf", 16);
+	TTF_Font* font = TTF_OpenFont((char*)"score.ttf", 16);
 	if (font == NULL) {
 		cout << "Font loading error" << endl;
 		return;
@@ -434,7 +484,7 @@ void renderGameOver() {
 
 	SDL_Color C = { 255, 255, 255 };
 
-	TTF_Font* font = TTF_OpenFont((char*)"Aller_Rg.ttf", 26);
+	TTF_Font* font = TTF_OpenFont((char*)"score.ttf", 26);
 	if (font == NULL) {
 		cout << "Font loading error" << endl;
 		return;
@@ -466,7 +516,11 @@ void runGame(){
         } else
             Mix_PauseMusic();
         if(checkCollision())
+        {
+            Mix_PlayChannel(-1, gameOver, 0);
             break;
+        }
+
         render();
         SDL_Delay((100-(0.5*score)));
     }
@@ -504,13 +558,16 @@ int main(int argc, char* argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
-    wavFile = Mix_LoadWAV("gunshot.wav");
-    Mix_Music* BGM = Mix_LoadMUS("bm.mp3");
+    wavFile = Mix_LoadWAV("eat.wav");
+    gameOver = Mix_LoadWAV("gameOver.wav");
+    Mix_Music* BGM = Mix_LoadMUS("bgm.mp3");
     Mix_PlayMusic(BGM, -1);
+    Mix_VolumeMusic(20);
     runGame();
     return 0;
 }
 
 //Name: Tushar Das
 //Reg: 2021831003
-//Software Engineering, IICT, SUST
+//Software Engineering, IICT, SUST//This is a simple snake game
+//Author: Tushar Das
