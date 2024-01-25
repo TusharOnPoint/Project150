@@ -17,6 +17,10 @@ SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
 Mix_Chunk* wavFile;
 Mix_Chunk* gameOver;
+SDL_Surface* imageSurface=nullptr;
+SDL_Texture* imageTexture=nullptr;
+SDL_Surface* oSurface=nullptr;
+SDL_Texture* oTexture=nullptr;
 
 struct Snake {
     vector<pair<int, int>> body;
@@ -63,6 +67,7 @@ void startScreen()
 {
     SDL_Rect start = {20*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
     SDL_Rect Exit = {SCREEN_WIDTH-30*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
+    SDL_Color C = { 251, 0, 100};
     while(true)
     {
         SDL_Event e;
@@ -80,12 +85,11 @@ void startScreen()
             }
         }
 
-    SDL_SetRenderDrawColor(renderer, 90, 100, 70, 255);
+    SDL_SetRenderDrawColor(renderer, 9, 10, 7, 255);
     SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, imageTexture, NULL, NULL);
 
-    SDL_Color C = { 255, 255, 255 };
-
-    TTF_Font* font = TTF_OpenFont((char*)"ttf_font.otf", 26);
+    TTF_Font* font = TTF_OpenFont((char*)"ttf_font1.otf", 26);
     if (font == NULL) {
         cout << "Font loading error" << endl;
         return;
@@ -111,6 +115,15 @@ void startScreen()
     SDL_RenderFillRect(renderer, &start);
     SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
     SDL_RenderFillRect(renderer, &Exit);
+
+    SDL_Surface* play = TTF_RenderText_Solid(font, "Play", C);
+    SDL_Texture* playS = SDL_CreateTextureFromSurface(renderer, play);
+    SDL_RenderCopy(renderer, playS, NULL, &start);
+
+    SDL_Surface* ex = TTF_RenderText_Solid(font, "Exit", C);
+	SDL_Texture* xit = SDL_CreateTextureFromSurface(renderer, ex);
+	SDL_RenderCopy(renderer, xit, NULL, &Exit);
+
     SDL_RenderPresent(renderer);
     SDL_Delay(100);
 
@@ -544,7 +557,7 @@ void displayScore () {
 
 void renderGameOver() {
     //cout<<"Game is over.\n";
-    SDL_Color C = { 255, 255, 255 };
+    SDL_Color C = { 2, 20, 0 };
     TTF_Font* font = TTF_OpenFont((char*)"ttf_font.otf", 26);
     /*if (font == NULL) {
 		cout << "Font loading error" << endl;
@@ -576,10 +589,11 @@ void renderGameOver() {
         }
         SDL_SetRenderDrawColor(renderer, 90, 100, 70, 255);
         SDL_RenderClear(renderer);
+        SDL_RenderCopy(renderer, oTexture, NULL, NULL);
 
         //cout << SDL_GetError();
 
-        string msg = "GAME OVER!!!";
+        /*string msg = "GAME OVER!!!";
 	    SDL_Surface* GO = TTF_RenderText_Solid(font, msg.c_str(), C);
 	    SDL_Texture* GOMessage = SDL_CreateTextureFromSurface(renderer, GO);
 	    SDL_Rect GORect;
@@ -587,7 +601,7 @@ void renderGameOver() {
 	    GORect.h = 60;
 	    GORect.x = ((SCREEN_WIDTH) / 2) - (GORect.w / 2);
 	    GORect.y = ((SCREEN_HEIGHT) / 2) - 2*(GORect.h);
-	    SDL_RenderCopy(renderer, GOMessage, NULL, &GORect);
+	    SDL_RenderCopy(renderer, GOMessage, NULL, &GORect);*/
 
         string Score = "Your Score: "+to_string(score);
         SDL_Surface* scrS = TTF_RenderText_Solid(font, Score.c_str(), C);
@@ -601,16 +615,24 @@ void renderGameOver() {
         SDL_Rect hscrRect = {((SCREEN_WIDTH) / 2) - (hscrRect.w / 2), ((SCREEN_HEIGHT) / 2)-GRID_SIZE, 220, 45};
         SDL_RenderCopy(renderer, hscrT, NULL, &hscrRect);
 
-        string ask = "Would you like to play?";
+        /*string ask = "Would you like to play?";
         SDL_Surface* s = TTF_RenderText_Solid(font, ask.c_str(), C);
         SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, s);
         SDL_Rect dest = {((SCREEN_WIDTH) / 2) - (dest.w / 2), ((SCREEN_HEIGHT) / 2)+4*GRID_SIZE, 360, 80};
-        SDL_RenderCopy(renderer, message, NULL, &dest);
+        SDL_RenderCopy(renderer, message, NULL, &dest);*/
 
         SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
         SDL_RenderFillRect(renderer, &start);
         SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
         SDL_RenderFillRect(renderer, &Exit);
+
+        SDL_Surface* s = TTF_RenderText_Solid(font, "Play Again", C);
+        SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, s);
+        SDL_RenderCopy(renderer, message, NULL, &start);
+
+        SDL_Surface* ex = TTF_RenderText_Solid(font, "Exit", C);
+	    SDL_Texture* xit = SDL_CreateTextureFromSurface(renderer, ex);
+	    SDL_RenderCopy(renderer, xit, NULL, &Exit);
 
         SDL_RenderPresent(renderer);
         SDL_Delay(100);
@@ -673,6 +695,11 @@ int main(int argc, char* argv[])
     window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); 
     TTF_Init();
+    IMG_Init(IMG_INIT_JPG);
+    imageSurface=IMG_Load("startscrn.jpg");
+    imageTexture = SDL_CreateTextureFromSurface(renderer, imageSurface);
+    oSurface=IMG_Load("gameOver.jpg");
+    oTexture = SDL_CreateTextureFromSurface(renderer, oSurface);
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
     wavFile = Mix_LoadWAV("eat.wav");
     gameOver = Mix_LoadWAV("gameOver.wav");
