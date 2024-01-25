@@ -67,7 +67,7 @@ void startScreen()
 {
     SDL_Rect start = {20*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
     SDL_Rect Exit = {SCREEN_WIDTH-30*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
-    SDL_Color C = { 251, 0, 100};
+    SDL_Color C = { 0, 0, 0};
     while(true)
     {
         SDL_Event e;
@@ -89,13 +89,13 @@ void startScreen()
     SDL_RenderClear(renderer);
     SDL_RenderCopy(renderer, imageTexture, NULL, NULL);
 
-    TTF_Font* font = TTF_OpenFont((char*)"ttf_font1.otf", 26);
+    TTF_Font* font = TTF_OpenFont((char*)"font.otf", 26);
     if (font == NULL) {
         cout << "Font loading error" << endl;
         return;
     }
 
-    string msg = "Wellcome to Snake World!";
+    /*string msg = "Wellcome to Snake World!";
     SDL_Surface* surf = TTF_RenderText_Solid(font, msg.c_str(), C);
     SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surf);
     SDL_Rect rect;
@@ -109,7 +109,7 @@ void startScreen()
     SDL_Surface* s = TTF_RenderText_Solid(font, ask.c_str(), C);
     SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, s);
     SDL_Rect dest = {((SCREEN_WIDTH) / 2) - (dest.w / 2), ((SCREEN_HEIGHT) / 2) - 20, 400, 160};
-    SDL_RenderCopy(renderer, message, NULL, &dest);
+    SDL_RenderCopy(renderer, message, NULL, &dest);*/
 
     SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
     SDL_RenderFillRect(renderer, &start);
@@ -557,8 +557,8 @@ void displayScore () {
 
 void renderGameOver() {
     //cout<<"Game is over.\n";
-    SDL_Color C = { 2, 20, 0 };
-    TTF_Font* font = TTF_OpenFont((char*)"ttf_font.otf", 26);
+    SDL_Color C = { 2, 20, 240 };
+    TTF_Font* font = TTF_OpenFont((char*)"font.otf", 26);
     /*if (font == NULL) {
 		cout << "Font loading error" << endl;
 		return;
@@ -612,7 +612,7 @@ void renderGameOver() {
         string hScore = "Highest Score: "+to_string(highScore);
         SDL_Surface* hscrS = TTF_RenderText_Solid(font, hScore.c_str(), C);
         SDL_Texture* hscrT = SDL_CreateTextureFromSurface(renderer, hscrS);
-        SDL_Rect hscrRect = {((SCREEN_WIDTH) / 2) - (hscrRect.w / 2), ((SCREEN_HEIGHT) / 2)-GRID_SIZE, 220, 45};
+        SDL_Rect hscrRect = {((SCREEN_WIDTH) / 2) - (hscrRect.w / 2), ((SCREEN_HEIGHT) / 2)-GRID_SIZE, 280, 75};
         SDL_RenderCopy(renderer, hscrT, NULL, &hscrRect);
 
         /*string ask = "Would you like to play?";
@@ -626,6 +626,7 @@ void renderGameOver() {
         SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
         SDL_RenderFillRect(renderer, &Exit);
 
+        C = { 2, 20, 0 };
         SDL_Surface* s = TTF_RenderText_Solid(font, "Play Again", C);
         SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, s);
         SDL_RenderCopy(renderer, message, NULL, &start);
