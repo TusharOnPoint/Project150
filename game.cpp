@@ -1,10 +1,10 @@
 //This is a simple snake game
-//Author: Tushar Das
 
-#include <bits/stdc++.h>
-#include "include/SDL.h"
-#include "include/SDL_ttf.h"
-#include "include/SDL_mixer.h"
+#include<bits/stdc++.h>
+#include<SDL2/SDL.h>
+#include<SDL2/SDL_image.h>
+#include<SDL2/SDL_mixer.h>
+#include<SDL2/SDL_ttf.h>
 #undef main
 
 using namespace std;
@@ -37,6 +37,8 @@ int px=SCREEN_WIDTH/2, py=SCREEN_HEIGHT/2;
 bool quit ;
 bool pause ;
 bool f=true;
+bool replay;
+bool mouseOn = false;
 int score;
 int highScore = 0;
 int buttonid;
@@ -53,6 +55,68 @@ void drawCirc (int X, int Y, int radius)
                 SDL_RenderDrawPoint(renderer, x, y);
             }
         }
+}
+
+void runGame();
+
+void startScreen()
+{
+    SDL_Rect start = {20*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
+    SDL_Rect Exit = {SCREEN_WIDTH-30*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
+    while(true)
+    {
+        SDL_Event e;
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                exit(0);
+            } 
+            else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                if (x>=start.x && x<=start.x+start.w && y>=start.y && y<=start.y+start.h)
+                    runGame();
+                else if (x>=Exit.x && x<=Exit.x+Exit.w && y>=Exit.y && y<=Exit.y+Exit.h)
+                    exit(0);
+            }
+        }
+
+    SDL_SetRenderDrawColor(renderer, 90, 100, 70, 255);
+    SDL_RenderClear(renderer);
+
+    SDL_Color C = { 255, 255, 255 };
+
+    TTF_Font* font = TTF_OpenFont((char*)"ttf_font.otf", 26);
+    if (font == NULL) {
+        cout << "Font loading error" << endl;
+        return;
+    }
+
+    string msg = "Wellcome to Snake World!";
+    SDL_Surface* surf = TTF_RenderText_Solid(font, msg.c_str(), C);
+    SDL_Texture* Message = SDL_CreateTextureFromSurface(renderer, surf);
+    SDL_Rect rect;
+    rect.w = 480;
+    rect.h = 180;
+    rect.x = ((SCREEN_WIDTH) / 2) - (rect.w / 2);
+    rect.y = ((SCREEN_HEIGHT) / 2) - (rect.h);
+    SDL_RenderCopy(renderer, Message, NULL, &rect);
+
+    string ask = "Would you like to play?";
+    SDL_Surface* s = TTF_RenderText_Solid(font, ask.c_str(), C);
+    SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, s);
+    SDL_Rect dest = {((SCREEN_WIDTH) / 2) - (dest.w / 2), ((SCREEN_HEIGHT) / 2) - 20, 400, 160};
+    SDL_RenderCopy(renderer, message, NULL, &dest);
+
+    SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
+    SDL_RenderFillRect(renderer, &start);
+    SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
+    SDL_RenderFillRect(renderer, &Exit);
+    SDL_RenderPresent(renderer);
+    SDL_Delay(100);
+
+    TTF_CloseFont(font);
+    }
+    
 }
 
 void generateFood() {
@@ -103,9 +167,6 @@ void initialize() {
     pause = false;
     score = 0;
     regfoodcount = 0;
-    window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_BORDERLESS);
-    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
-    TTF_Init();
 
     snake.body.push_back({0, 0});
     snake.body.push_back({1, 0});
@@ -116,8 +177,7 @@ void initialize() {
     sp.x=-100;
     sp.y=-100;
     generateFood();
-
-    
+    SDL_GetMouseState(&px, &py);    
     
 }
 
@@ -170,56 +230,62 @@ void processInput (){
                     case SDLK_ESCAPE:
                         exit(0);
                         break;
+                    case SDLK_m:
+                        mouseOn = !mouseOn;
+                        SDL_GetMouseState(&px, &py);
+                        break;
+                }
+            }
+    }
+    if (mouseOn)
+    {
+        int x,y;
+        if (SDL_GetMouseState(&x, &y) == 1) pause=!pause;
+        int dx = px-x, dy = py-y;
+        //cout << px << " " << py << endl;
+        //cout << x << " " << y << endl;
+        //cout << dx << " " << dy << endl;
+        //cout << endl;
+        if(abs(dx)>abs(dy))
+        {
+            if(dx>0) 
+            {
+                if (snake.direction != 'R') 
+                {
+                    snake.direction = 'L';
+                    //if (pause) pause= !pause;
+                }
+            }
+            else if(dx<0){
+                if (snake.direction != 'L') 
+                {
+                    snake.direction = 'R';
+                    //if (pause) pause= !pause;
+                }
+            }
+        }
+        else if(abs(dx)<abs(dy))
+        {
+            if(dy>0) 
+            {
+                if (snake.direction != 'D') 
+                {
+                    snake.direction = 'U';
+                    //if (pause) pause= !pause;
+                }
+            }
+            else if(dy<0){
+                if (snake.direction != 'U') 
+                {
+                    snake.direction = 'D';
+                    //if (pause) pause= !pause;
                 }
             }
         }
 
-    int x,y;
-    SDL_GetMouseState(&x, &y);
-    int dx = px-x, dy = py-y;
-    //cout << px << " " << py << endl;
-    //cout << x << " " << y << endl;
-    //cout << dx << " " << dy << endl;
-    //cout << endl;
-    if(abs(dx)>abs(dy))
-    {
-        if(dx>0) 
-        {
-            if (snake.direction != 'R') 
-                    {
-                        snake.direction = 'L';
-                        if (pause) pause= !pause;
-                    }
-        }
-        else if(dx<0){
-            if (snake.direction != 'L') 
-                        {
-                            snake.direction = 'R';
-                            if (pause) pause= !pause;
-                        }
-        }
+        px=x;
+        py=y;
     }
-    else if(abs(dx)<abs(dy))
-    {
-        if(dy>0) 
-        {
-            if (snake.direction != 'D') 
-                    {
-                        snake.direction = 'U';
-                        if (pause) pause= !pause;
-                    }
-        }
-        else if(dy<0){
-            if (snake.direction != 'U') 
-                        {
-                            snake.direction = 'D';
-                            if (pause) pause= !pause;
-                        }
-        }
-    }
-
-    px=x;
-    py=y;
 }
 
 void update() {
@@ -347,7 +413,7 @@ void update() {
 void renderScore() {
 	SDL_Color Red = { 255, 0, 0 };
 
-	TTF_Font* font = TTF_OpenFont((char*)"score.ttf", 16);
+	TTF_Font* font = TTF_OpenFont((char*)"ttf_font.otf", 16);
 	if (font == NULL) {
 		cout << "Font loading error" << endl;
 		return;
@@ -459,9 +525,9 @@ void displayScore () {
     string msg = scoreMessage + "\nHighest score is: " + to_string(highScore) + ".";
 
     const SDL_MessageBoxButtonData buttons[] = {
-    { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
-    { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Replay" },
-};
+        { SDL_MESSAGEBOX_BUTTON_RETURNKEY_DEFAULT, 0, "OK" },
+        { SDL_MESSAGEBOX_BUTTON_ESCAPEKEY_DEFAULT, 1, "Replay" },
+    };
 
     const SDL_MessageBoxData messageboxdata = {
         SDL_MESSAGEBOX_INFORMATION,
@@ -478,31 +544,78 @@ void displayScore () {
 
 void renderGameOver() {
     //cout<<"Game is over.\n";
-
-    SDL_SetRenderDrawColor(renderer, 90, 100, 70, 255);
-    SDL_RenderClear(renderer);
-
-	SDL_Color C = { 255, 255, 255 };
-
-	TTF_Font* font = TTF_OpenFont((char*)"score.ttf", 26);
-	if (font == NULL) {
+    SDL_Color C = { 255, 255, 255 };
+    TTF_Font* font = TTF_OpenFont((char*)"ttf_font.otf", 26);
+    /*if (font == NULL) {
 		cout << "Font loading error" << endl;
 		return;
-	}
+	}*/
+    SDL_Rect start = {20*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
+    SDL_Rect Exit = {SCREEN_WIDTH-30*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
+    while(true)
+    {
+        SDL_Event e;
+        if (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                exit(0);
+            } 
+            else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                if (x>=start.x && x<=start.x+start.w && y>=start.y && y<=start.y+start.h)
+                {
+                    replay = true;
+                    break;
+                }
+                else if (x>=Exit.x && x<=Exit.x+Exit.w && y>=Exit.y && y<=Exit.y+Exit.h)
+                {
+                    replay = false;
+                    break;
+                }
+            }
+        }
+        SDL_SetRenderDrawColor(renderer, 90, 100, 70, 255);
+        SDL_RenderClear(renderer);
 
-    string msg = "GAME OVER!!!";
-	SDL_Surface* GO = TTF_RenderText_Solid(font, msg.c_str(), C);
-	SDL_Texture* GOMessage = SDL_CreateTextureFromSurface(renderer, GO);
-	SDL_Rect GORect;
-	GORect.w = 480;
-	GORect.h = 180;
-	GORect.x = ((SCREEN_WIDTH) / 2) - (GORect.w / 2);
-	GORect.y = ((SCREEN_HEIGHT) / 2) - (GORect.h / 2);
-	SDL_RenderCopy(renderer, GOMessage, NULL, &GORect);
-    SDL_RenderPresent(renderer);
-    SDL_Delay(500);
+        //cout << SDL_GetError();
 
-	TTF_CloseFont(font);
+        string msg = "GAME OVER!!!";
+	    SDL_Surface* GO = TTF_RenderText_Solid(font, msg.c_str(), C);
+	    SDL_Texture* GOMessage = SDL_CreateTextureFromSurface(renderer, GO);
+	    SDL_Rect GORect;
+	    GORect.w = 200;
+	    GORect.h = 60;
+	    GORect.x = ((SCREEN_WIDTH) / 2) - (GORect.w / 2);
+	    GORect.y = ((SCREEN_HEIGHT) / 2) - 2*(GORect.h);
+	    SDL_RenderCopy(renderer, GOMessage, NULL, &GORect);
+
+        string Score = "Your Score: "+to_string(score);
+        SDL_Surface* scrS = TTF_RenderText_Solid(font, Score.c_str(), C);
+        SDL_Texture* scrT = SDL_CreateTextureFromSurface(renderer, scrS);
+        SDL_Rect scrRect = {((SCREEN_WIDTH) / 2) - (scrRect.w / 2), ((SCREEN_HEIGHT) / 2)-4*GRID_SIZE, 220, 45};
+        SDL_RenderCopy(renderer, scrT, NULL, &scrRect);
+
+        string hScore = "Highest Score: "+to_string(highScore);
+        SDL_Surface* hscrS = TTF_RenderText_Solid(font, hScore.c_str(), C);
+        SDL_Texture* hscrT = SDL_CreateTextureFromSurface(renderer, hscrS);
+        SDL_Rect hscrRect = {((SCREEN_WIDTH) / 2) - (hscrRect.w / 2), ((SCREEN_HEIGHT) / 2)-GRID_SIZE, 220, 45};
+        SDL_RenderCopy(renderer, hscrT, NULL, &hscrRect);
+
+        string ask = "Would you like to play?";
+        SDL_Surface* s = TTF_RenderText_Solid(font, ask.c_str(), C);
+        SDL_Texture* message = SDL_CreateTextureFromSurface(renderer, s);
+        SDL_Rect dest = {((SCREEN_WIDTH) / 2) - (dest.w / 2), ((SCREEN_HEIGHT) / 2)+4*GRID_SIZE, 360, 80};
+        SDL_RenderCopy(renderer, message, NULL, &dest);
+
+        SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
+        SDL_RenderFillRect(renderer, &start);
+        SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
+        SDL_RenderFillRect(renderer, &Exit);
+
+        SDL_RenderPresent(renderer);
+        SDL_Delay(100);
+    }
+    TTF_CloseFont(font);
 }
 
 void runGame(){
@@ -517,7 +630,7 @@ void runGame(){
             Mix_PauseMusic();
         if(checkCollision())
         {
-            Mix_PlayChannel(-1, gameOver, 0);
+            //Mix_PlayChannel(-1, gameOver, 0);
             break;
         }
 
@@ -547,9 +660,9 @@ void runGame(){
 
     renderGameOver();
     SDL_Delay(1000);
-    displayScore();
+    //displayScore();
     snake.body.clear();
-    if(buttonid == 1)
+    if(replay)
         runGame();
     close();
 } 
@@ -557,17 +670,20 @@ void runGame(){
 int main(int argc, char* argv[])
 {
     SDL_Init(SDL_INIT_EVERYTHING);
+    window = SDL_CreateWindow("Snake Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED); 
+    TTF_Init();
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
     wavFile = Mix_LoadWAV("eat.wav");
     gameOver = Mix_LoadWAV("gameOver.wav");
-    Mix_Music* BGM = Mix_LoadMUS("bgm.mp3");
+    Mix_Music* BGM = Mix_LoadMUS("snakesound.mp3");
     Mix_PlayMusic(BGM, -1);
     Mix_VolumeMusic(20);
-    runGame();
+    startScreen();
+    //runGame();
     return 0;
 }
 
 //Name: Tushar Das
 //Reg: 2021831003
 //Software Engineering, IICT, SUST//This is a simple snake game
-//Author: Tushar Das
