@@ -22,6 +22,8 @@ Mix_Chunk* wow;
 Mix_Chunk* timer;
 SDL_Surface* imageSurface=nullptr;
 SDL_Texture* imageTexture=nullptr;
+SDL_Surface* HelpSurface=nullptr;
+SDL_Texture* helpTexture=nullptr;
 SDL_Surface* oSurface=nullptr;
 SDL_Texture* oTexture=nullptr;
 
@@ -66,10 +68,51 @@ void drawCirc (int X, int Y, int radius)
 
 void runGame();
 
+void helpScr()
+{   
+    HelpSurface = IMG_Load("help.jpg");
+    helpTexture = SDL_CreateTextureFromSurface(renderer, HelpSurface);
+    SDL_Rect back = {SCREEN_WIDTH/2-5*GRID_SIZE, SCREEN_HEIGHT-6*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
+    SDL_Color C = { 0, 0, 0};
+    while(true)
+    {
+        SDL_Event e;
+        while (SDL_PollEvent(&e) != 0) {
+            if (e.type == SDL_QUIT) {
+                exit(0);
+            } 
+            else if (e.type == SDL_MOUSEBUTTONDOWN) {
+                int x, y;
+                SDL_GetMouseState(&x, &y);
+                if (x>=back.x && x<=back.x+back.w && y>=back.y && y<=back.y+back.h)
+                    break;
+            }
+        }
+
+    SDL_SetRenderDrawColor(renderer, 9, 10, 7, 255);
+    SDL_RenderClear(renderer);
+    SDL_RenderCopy(renderer, helpTexture, NULL, NULL);
+
+    TTF_Font* font = TTF_OpenFont((char*)"font.otf", 26);
+    if (font == NULL) {
+        cout << "Font loading error" << endl;
+        return;
+    }
+
+    SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
+    SDL_RenderFillRect(renderer, &back);
+
+    SDL_Surface* Back = TTF_RenderText_Solid(font, "Help?", C);
+    SDL_Texture* BackS = SDL_CreateTextureFromSurface(renderer, Back);
+    SDL_RenderCopy(renderer, BackS, NULL, &back);
+    }
+}
+
 void startScreen()
 {
     SDL_Rect start = {20*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
     SDL_Rect Exit = {SCREEN_WIDTH-30*GRID_SIZE, SCREEN_HEIGHT-10*GRID_SIZE, 10*GRID_SIZE, 3*GRID_SIZE};
+    SDL_Rect help = {SCREEN_WIDTH-11*GRID_SIZE, 15, 10*GRID_SIZE, 3*GRID_SIZE};
     SDL_Color C = { 0, 0, 0};
     while(true)
     {
@@ -83,6 +126,8 @@ void startScreen()
                 SDL_GetMouseState(&x, &y);
                 if (x>=start.x && x<=start.x+start.w && y>=start.y && y<=start.y+start.h)
                     runGame();
+                else if (x>=help.x && x<=help.x+help.w && y>=help.y && y<=help.y+help.h)
+                    helpScr();
                 else if (x>=Exit.x && x<=Exit.x+Exit.w && y>=Exit.y && y<=Exit.y+Exit.h)
                     exit(0);
             }
@@ -118,6 +163,10 @@ void startScreen()
     SDL_RenderFillRect(renderer, &start);
     SDL_SetRenderDrawColor(renderer, 200, 0, 0, 255);
     SDL_RenderFillRect(renderer, &Exit);
+
+    SDL_Surface* Help = TTF_RenderText_Solid(font, "Help?", C);
+    SDL_Texture* HelpS = SDL_CreateTextureFromSurface(renderer, Help);
+    SDL_RenderCopy(renderer, HelpS, NULL, &help);
 
     SDL_Surface* play = TTF_RenderText_Solid(font, "Play", C);
     SDL_Texture* playS = SDL_CreateTextureFromSurface(renderer, play);
