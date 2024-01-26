@@ -15,8 +15,11 @@ const int GRID_SIZE = 15;
 
 SDL_Window* window = nullptr;
 SDL_Renderer* renderer = nullptr;
-Mix_Chunk* wavFile;
+Mix_Music* BGM;
+Mix_Chunk* eat;
 Mix_Chunk* gameOver;
+Mix_Chunk* wow;
+Mix_Chunk* timer;
 SDL_Surface* imageSurface=nullptr;
 SDL_Texture* imageTexture=nullptr;
 SDL_Surface* oSurface=nullptr;
@@ -155,7 +158,7 @@ void generateFood() {
 void generateSpFood() {
     sp.x = rand() % (SCREEN_WIDTH / GRID_SIZE) * GRID_SIZE;
     sp.y = rand() % (SCREEN_HEIGHT / GRID_SIZE) * GRID_SIZE;
-    if ((sp.x >= 60 && sp.x <= 60+3*GRID_SIZE &&
+    if (sp.x < GRID_SIZE || (sp.x >= 60 && sp.x <= 60+3*GRID_SIZE &&
         sp.y >= 60 && sp.y <= 60+8*GRID_SIZE) ||
         (sp.x >= 60 && sp.x <= 60+8*GRID_SIZE &&
         sp.y >= 60 && sp.y <= 60+3*GRID_SIZE) ||
@@ -307,6 +310,7 @@ void update() {
     if ((ctime-ptime >= 6000))
     {
         f=false;
+        Mix_HaltChannel(1);
         sp.x = -100;
         sp.y = -100;
     }
@@ -343,6 +347,7 @@ void update() {
 
     if (regfoodcount == 7) 
     { 
+        Mix_PlayChannel(1, timer, -1);
         generateSpFood();
     }
 
@@ -377,7 +382,7 @@ void update() {
     }
     snake.body.insert(snake.body.begin(), newHead);
         snake.body.pop_back();*/
-        Mix_PlayChannel(-1, wavFile, 0);
+        Mix_PlayChannel(2, eat, 0);
         generateFood();
     } 
     else if((newHead.first >= sp.x - GRID_SIZE && newHead.first < sp.x + GRID_SIZE) && 
@@ -386,6 +391,7 @@ void update() {
         score+=10;
         sp.x= -100;
         sp.y= -100;
+        Mix_HaltChannel(1);
         /*switch (snake.direction) {
         case 'U':
             if (snake.body.front().second > 0)
@@ -416,7 +422,8 @@ void update() {
     snake.body.insert(snake.body.begin(), newHead);
     snake.body.pop_back();*/
 
-    Mix_PlayChannel(-1, wavFile, 0);
+    Mix_PlayChannel(-1, eat, 0);
+    Mix_PlayChannel(-1, wow, 0);
     }
     else {
         snake.body.pop_back();
@@ -643,6 +650,7 @@ void renderGameOver() {
 
 void runGame(){
 
+    Mix_PlayMusic(BGM, -1);
     initialize();
     while (!quit) {
         processInput ();
@@ -653,7 +661,8 @@ void runGame(){
             Mix_PauseMusic();
         if(checkCollision())
         {
-            //Mix_PlayChannel(-1, gameOver, 0);
+            Mix_PlayChannel(-1, gameOver, 0);
+            Mix_HaltMusic();
             break;
         }
 
@@ -702,10 +711,11 @@ int main(int argc, char* argv[])
     oSurface=IMG_Load("gameOver.jpg");
     oTexture = SDL_CreateTextureFromSurface(renderer, oSurface);
     Mix_OpenAudio(44100, MIX_DEFAULT_FORMAT, 2, 1024);
-    wavFile = Mix_LoadWAV("eat.wav");
-    gameOver = Mix_LoadWAV("gameOver.wav");
-    Mix_Music* BGM = Mix_LoadMUS("snakesound.mp3");
-    Mix_PlayMusic(BGM, -1);
+    eat = Mix_LoadWAV("sound/eat.mp3");
+    gameOver = Mix_LoadWAV("sound/gameover.mp3");
+    wow = Mix_LoadWAV("sound/wow.mp3");
+    timer = Mix_LoadWAV("sound/timer.mp3");
+    BGM = Mix_LoadMUS("sound/bgm.mp3");
     Mix_VolumeMusic(20);
     startScreen();
     //runGame();
